@@ -5,7 +5,7 @@ import os
 # Need to wait for North API to release to check how memory pointers will work;
 
 now = datetime.now()
-py_keywords = ["from", "property"]
+py_keywords = ["from", "property", "range", "hash", "object", "type"]
 pointer_pattern = re.compile("int\\*|float\\*|Any\\*|Vector3\\*|BOOL\\*|unsigned\\*")
 arg_pattern = re.compile("int\\*|float|int|Any|Object|unsigned|BOOL|BOOL\\*|const char\\*|Any\\*|unsigned\\*|char\\*")
 native_format = "snake_lower"
