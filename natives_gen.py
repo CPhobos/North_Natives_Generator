@@ -79,7 +79,7 @@ pointer_template = """
 def {}({}):
 	native.output_flag({}, [{}])
 	result = native.invoke({}, {})
-	return (result.raw{})
+	return {}
 
 """
 
