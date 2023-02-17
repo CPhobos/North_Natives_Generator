@@ -13,6 +13,8 @@ A fast Python script that converts a C++ Natives HPP file to a Python file that 
   
   [4] Open a terminal and run {your_python_env_variable} natives_gen.py
   
+  [4.1] Specify which native format you wanna use
+  
   [5] Locate your natives.py file in the same directory
   
   [6] To use the natives, simply import it into your script.
