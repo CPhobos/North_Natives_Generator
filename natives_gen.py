@@ -8,6 +8,7 @@ now = datetime.now()
 py_keywords = ["from", "property"]
 pointer_pattern = re.compile("int\\*|float\\*|Any\\*|Vector3\\*|BOOL\\*|unsigned\\*")
 arg_pattern = re.compile("int\\*|float|int|Any|Object|unsigned|BOOL|BOOL\\*|const char\\*|Any\\*|unsigned\\*|char\\*")
+native_format = "snake_lower"
 
 def get_formatted_args(input_args: list) -> str:
 	return re.sub(arg_pattern,  "", input_args[i])
@@ -96,13 +97,31 @@ else:
 	print("Natives file not found!")
 	exit()
 
+def sanitize_user_input(user_inp) -> str:	 # I already know someone will break it...
+	if(len(re.findall("[a-zA-Z]", user_inp)) != 0):
+		print("String found... Defaulting to fivem..")
+		return "fivem"
+	user_inp = int(user_inp)
+	if(user_inp <= 3):
+		if(user_inp == 1):
+			return "snake_lower"
+		elif(user_inp == 2):
+			return "snake_cap"
+		else:
+			return "fivem"
+
+
+
+user_input = input("""Which format do you wanna use? \n [1] Snake Case Lower \n [2] Snake Case Higher \n [3] Fivem \n""")
+native_format = sanitize_user_input(user_input)
+
 with open(natives_file, "r") as f:
     natives_src = f.read()
 
 return_types 	= 	get_return_types(natives_src)
 native_hashes 	= 	get_native_hashes(natives_src)
 native_args 	= 	get_native_args(natives_src)
-native_names 	= 	get_native_names(natives_src, "snake_lower")
+native_names 	= 	get_native_names(natives_src, native_format)
 
 
 pointer_template = """ 
