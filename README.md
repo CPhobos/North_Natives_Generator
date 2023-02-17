@@ -7,6 +7,8 @@ A fast Python script that converts a C++ Natives HPP file to a Python file that 
   
   [2] Acquire a Natives.hpp file. by going to https://nativedb.dotindustries.dev/natives and clicking Generate Code
   
+  [2.1] MAKE SURE NATIVE TYPES IS TURNED ON!
+  
   [3] Ensure that the Natives.hpp file is placed inside the same directory that the script is in
   
   [4] Open a terminal and run {your_python_env_variable} natives_gen.py
