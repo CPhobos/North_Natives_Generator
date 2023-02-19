@@ -1,3 +1,4 @@
+======= fixing
 import re
 import os 
 import time
@@ -167,3 +168,5 @@ with open("natives.py", "a") as natives_file:
 			natives_file.write(no_arg_template.format(name, has_return_type(return_types[i]), hashes))
 end_time = time.time()
 print("Done! Completed in {} Seconds".format(end_time - start_time))
+
+======= main
