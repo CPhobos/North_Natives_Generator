@@ -1,4 +1,4 @@
-# North_Natives_Generator
+# North_Natives_Generator (Currently still a work in progress)
 A fast Python script that converts a C++ Natives HPP file to a Python file that can be used in North scripts.
 
 # How To Use #
