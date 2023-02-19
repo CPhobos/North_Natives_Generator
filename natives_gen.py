@@ -1,6 +1,7 @@
 import re
 import os 
 import time
+import sys
 from datetime import datetime
 
 now = datetime.now()
@@ -9,6 +10,7 @@ py_keywords = ["from", "property", "hash", "object", "range"]
 pointer_pattern = re.compile("int\\*|float\\*|Any\\*|Vector3\\*|BOOL\\*|unsigned\\*")
 arg_pattern = re.compile("int\\*|float|int|Any|Object|unsigned|BOOL|BOOL\\*|const char\\*|Any\\*|unsigned\\*|char\\*")
 native_format = "snake_lower"
+mode = "simple"
 
 def get_formatted_args(input_args: list, use_comments: bool) -> str:
 	return re.sub(arg_pattern,  "", input_args[i])
@@ -93,18 +95,11 @@ def find_natives_file() -> str:
 			return match[0]
 	return False
 
-found_natives = find_natives_file()
-if(found_natives):
-	natives_file = found_natives
-else:
-	print("Natives file not found!")
-	exit()
-
-
 def sanitize_user_input(user_inp) -> str:	 # I already know someone will break it...
 	if(len(re.findall("[a-zA-Z]", user_inp)) != 0):
 		print("String found... Defaulting to fivem..")
 		return "fivem"
+	if(user_inp == ""): return "fivem"
 	user_inp = int(user_inp)
 	if(user_inp <= 3):
 		if(user_inp == 1):
@@ -114,7 +109,12 @@ def sanitize_user_input(user_inp) -> str:	 # I already know someone will break i
 		else:
 			return "fivem"
 
-
+found_natives = find_natives_file()
+if(found_natives):
+	natives_file = found_natives
+else:
+	print("Natives file not found!")
+	exit()
 
 user_input = input("""Which format do you wanna use? \n [1] Snake Case Lower \n [2] Snake Case Higher \n [3] Fivem \n""")
 native_format = sanitize_user_input(user_input)
