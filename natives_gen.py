@@ -1,4 +1,3 @@
-======= fixing
 import re
 import os 
 import time
@@ -169,4 +168,3 @@ with open("natives.py", "a") as natives_file:
 end_time = time.time()
 print("Done! Completed in {} Seconds".format(end_time - start_time))
 
-======= main
