@@ -105,7 +105,7 @@ def sanitize_user_input(user_inp) -> str:	 # I already know someone will break i
 	user_inp = int(user_inp)
 	if(user_inp <= 3):
 		if(user_inp == 1):
-			return "snake_lower"
+			return "snake_lower
 		elif(user_inp == 2):
 			return "snake_cap"
 		else:
