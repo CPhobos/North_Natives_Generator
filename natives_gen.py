@@ -157,4 +157,4 @@ with open("natives.py", "w") as natives_file:
 		elif(native_args[i] != ""):
 			natives_file.write(arg_template.format(name, args, has_return_type(return_types[i]), hashes, args))
 		else:
-			natives_file.write(no_arg_template.format(name, has_return_type(native_args[i]), hashes))
+			natives_file.write(no_arg_template.format(name, has_return_type(return_types[i]), hashes))
