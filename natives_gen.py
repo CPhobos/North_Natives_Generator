@@ -97,10 +97,10 @@ def find_natives_file() -> str:
 
 def sanitize_user_input(user_inp) -> str:	 # I already know someone will break it...
 	if(len(re.findall("[a-zA-Z]", user_inp)) != 0):
-		print("String found... Defaulting to fivem..")
+		print("String found... Defaulting to fivem format..")
 		return "fivem"
 	if(user_inp == ""):
-		print("No input received... Defaulting to fivem..") 
+		print("No input received... Defaulting to fivem format..") 
 		return "fivem"
 	user_inp = int(user_inp)
 	if(user_inp <= 3):
