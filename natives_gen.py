@@ -99,7 +99,9 @@ def sanitize_user_input(user_inp) -> str:	 # I already know someone will break i
 	if(len(re.findall("[a-zA-Z]", user_inp)) != 0):
 		print("String found... Defaulting to fivem..")
 		return "fivem"
-	if(user_inp == ""): return "fivem"
+	if(user_inp == ""):
+		print("No input received... Defaulting to fivem..") 
+		return "fivem"
 	user_inp = int(user_inp)
 	if(user_inp <= 3):
 		if(user_inp == 1):
