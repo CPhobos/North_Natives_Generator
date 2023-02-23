@@ -139,7 +139,7 @@ pointer_template = """
 def {}({}):
 	native.output_flag({}, [{}])
 	result = native.invoke({}, {})
-	return (result.raw{})
+	return ({})
 
 """
 
@@ -171,4 +171,4 @@ if __name__ == "__main__":
 			else:
 				natives_file.write(no_arg_template.format(name, has_return_type(return_types[i]), hashes))
 	end_time = time.time()
-	print("Done! Completed in {} Seconds".format(end_time - start_time))
+	print("Done! Generated {} Natives in {:.2f} Seconds".format(len(native_hashes), end_time - start_time))
