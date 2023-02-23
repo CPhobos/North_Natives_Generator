@@ -3,30 +3,113 @@ import os
 import time
 from datetime import datetime
 
-system = {}
-app = {}
-audio = {}
+py_keywords = ["from", "property", "hash", "object", "range"]
+arg_pattern = re.compile("float\*?|int\*?|Any\*?|Object\*?|unsigned\*?|BOOL\*?|const char\\*|char\\*")
+pointer_pattern = re.compile("int\\*|float\\*|Any\\*|Vector3\\*|BOOL\\*|unsigned\\*")
 
+def remove_py_keywords(arg: str) -> str:
+	for keyword in py_keywords:
+		if(re.search(keyword, arg)):
+			return re.sub(keyword, "_{}".format(keyword), arg)
+	return arg
+
+def get_formatted_args(input_args: str) -> str:
+    if(input_args != None):
+        return remove_py_keywords(re.sub(arg_pattern,  "", input_args))
 
 def get_native_hashes(src: str) -> list:
-    match = re.search(r"(?<=\/\/\s)(0x[A-Za-z0-9]+)", src)
-    if(match != None):
-        return match
-    else:
-        pass
+    return re.search(r"(?<=\/\/\s)(0x[A-Za-z0-9]+)", src)
 
 def get_namespace(src: str) -> str:
-    match = re.search(r"namespace (\w+)", src)
-    if(match != None):
-        return match 
-    else: 
-        pass
+    return re.search(r"(?<=namespace\s)(\w+)", src)
 
+def get_native_name(src: str) -> str: 
+    return re.search(r"(\w+)\s*\(", src)
+
+def get_native_args(src: str) -> str:
+    match = re.search(r"\w+\((.*?)\)", src)
+    if(match):
+        return match.group(1)
+
+def does_native_have_pointers(native_args: str) -> bool:
+    if(native_args != None):
+        return len(re.findall(pointer_pattern, native_args)) != 0
+
+
+def extract_non_pointer_args(string: str) -> list:
+    try:
+        result = re.findall(r'(?<=int) (\w+)', string)[0]
+    except:
+        return ""
+    return result
+
+def get_pointer_count(arg) -> int:
+	return len(re.findall("(\w+\*)", arg))
+
+def format_pointer_result(native_args: int) -> str:
+    if(native_args != None):
+	    return "(" + ", ".join("result.raw[{}].{}".format(i, "int") for i in range(1, get_pointer_count(native_args) + 1)) + ")"
+
+def handle_pointers(native_src: list) -> str:
+    arr = list(range(get_pointer_count(native_src)))
+    for x in range(len(arr)):
+        arr[x] = x + 1
+    return ", ".join(str(n) for n in arr)
+
+native_format = """
+def {}({}):
+	{} print({}{})
+"""
+
+namespace_format = """
+
+{}["{}"] = {}
+
+"""
+
+pointer_template = """ 
+def {}({}):
+	native.output_flag({}, [{}])
+	result = native.invoke({}, {})
+	return {}
+"""
+
+
+test = open('testss.py', "w")
+
+test.write("""class dot_notation(dict):
+    __getattr__ = dict.get
+    __setattr__ = dict.__setitem__
+    __delattr__ = dict.__delitem__
+    """ + "\n")
+
+def has_args(src: str, include_comma: bool)-> str:
+    if include_comma:
+        return "," + src if src else ""
+    return src if src else ""
+
+start_time = time.time()
 with open("natives.hpp") as n:
     for line in n:
         namespace = get_namespace(line)
-        hashes = get_native_hashes(line)
-        if(hashes):
-            print(hashes.group())
+        cur_name = get_native_name(line).group(1).lower() if get_native_name(line) else None
+        cur_hash = get_native_hashes(line).group() if get_native_hashes(line) else None
+        cur_args = get_native_args(line) if get_native_args(line) else None
+        formatted_args = get_formatted_args(cur_args)
+        pointer_result = format_pointer_result(cur_args)
         if(namespace):
-            print("Current Namespace: {}".format(namespace.group()))
+            cur_namespace = namespace.group().lower()
+            test.write(f"\n{cur_namespace} = {{}} \n")
+            test.write(f"{cur_namespace} = dot_notation({cur_namespace})\n")
+        if(cur_name):
+            if(does_native_have_pointers(cur_args)):
+                test.write(pointer_template.format(cur_name, extract_non_pointer_args(cur_args), cur_hash, handle_pointers(cur_args), cur_hash, extract_non_pointer_args(cur_args), pointer_result))
+                test.write(namespace_format.format(cur_namespace, cur_name, cur_name).replace("\n", ""))
+                test.write("\n")
+            else:
+                test.write(native_format.format(cur_name, has_args(formatted_args, False), "", cur_hash, has_args(formatted_args, True)))
+                test.write(namespace_format.format(cur_namespace, cur_name, cur_name).replace("\n", ""))
+                test.write("\n")
+test.close()
+end_time = time.time()
+print(f"Done! Completed in {end_time - start_time}")
