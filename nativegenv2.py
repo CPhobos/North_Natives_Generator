@@ -46,15 +46,22 @@ def extract_non_pointer_args(string: str) -> list:
 def get_pointer_count(arg) -> int:
 	return len(re.findall("(\w+\*)", arg))
 
-def format_pointer_result(native_args: int) -> str:
+def format_pointer_result(native_args: int, pointer_type: str) -> str:
     if(native_args != None):
-	    return "(" + ", ".join("result.raw[{}].{}".format(i, "int") for i in range(1, get_pointer_count(native_args) + 1)) + ")"
+	    return "(" + ", ".join("result.raw[{}].{}".format(i, pointer_type) for i in range(1, get_pointer_count(native_args) + 1)) + ")"
 
 def handle_pointers(native_src: list) -> str:
     arr = list(range(get_pointer_count(native_src)))
     for x in range(len(arr)):
         arr[x] = x + 1
     return ", ".join(str(n) for n in arr)
+
+def get_native_result_type(native_src: str) -> str:
+    if(native_src != None):
+        match = re.search(r"\b(\w+)\*", native_src)
+        if(match):
+            return match.group(1)
+
 
 native_format = """
 def {}({}):
@@ -75,9 +82,9 @@ def {}({}):
 """
 
 
-test = open('testss.py', "w")
+native_file = open('native.py', "w")
 
-test.write("""class dot_notation(dict):
+native_file.write("""class dot_notation(dict):
     __getattr__ = dict.get
     __setattr__ = dict.__setitem__
     __delattr__ = dict.__delitem__
@@ -96,20 +103,20 @@ with open("natives.hpp") as n:
         cur_hash = get_native_hashes(line).group() if get_native_hashes(line) else None
         cur_args = get_native_args(line) if get_native_args(line) else None
         formatted_args = get_formatted_args(cur_args)
-        pointer_result = format_pointer_result(cur_args)
+        pointer_result = format_pointer_result(cur_args, get_native_result_type(cur_args))
         if(namespace):
             cur_namespace = namespace.group().lower()
-            test.write(f"\n{cur_namespace} = {{}} \n")
-            test.write(f"{cur_namespace} = dot_notation({cur_namespace})\n")
+            native_file.write(f"\n{cur_namespace} = {{}} \n")
+            native_file.write(f"{cur_namespace} = dot_notation({cur_namespace})\n")
         if(cur_name):
             if(does_native_have_pointers(cur_args)):
-                test.write(pointer_template.format(cur_name, extract_non_pointer_args(cur_args), cur_hash, handle_pointers(cur_args), cur_hash, extract_non_pointer_args(cur_args), pointer_result))
-                test.write(namespace_format.format(cur_namespace, cur_name, cur_name).replace("\n", ""))
-                test.write("\n")
+                native_file.write(pointer_template.format(cur_name, extract_non_pointer_args(cur_args), cur_hash, handle_pointers(cur_args), cur_hash, extract_non_pointer_args(cur_args), pointer_result))
+                native_file.write(namespace_format.format(cur_namespace, cur_name, cur_name).replace("\n", ""))
+                native_file.write("\n")
             else:
-                test.write(native_format.format(cur_name, has_args(formatted_args, False), "", cur_hash, has_args(formatted_args, True)))
-                test.write(namespace_format.format(cur_namespace, cur_name, cur_name).replace("\n", ""))
-                test.write("\n")
-test.close()
+                native_file.write(native_format.format(cur_name, has_args(formatted_args, False), "", cur_hash, has_args(formatted_args, True)))
+                native_file.write(namespace_format.format(cur_namespace, cur_name, cur_name).replace("\n", ""))
+                native_file.write("\n")
+native_file.close()
 end_time = time.time()
-print(f"Done! Completed in {end_time - start_time}")
+print("Done! Generated native.py in {:.2f} seconds".format(end_time - start_time))
