@@ -19,8 +19,13 @@ A fast Python script that converts a C++ Natives HPP file to a Python file that 
   
   [6] To use the natives, simply import it into your script.
   
-  Example:
+  V1 Example:
     
     import natives # name of the generated file
     
     print(natives.is_player_online())
+
+  V2 Example:
+    from native import * 
+    
+    print(player.is_player_online())
