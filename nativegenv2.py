@@ -7,6 +7,21 @@ py_keywords = ["from", "property", "hash", "object", "range"]
 arg_pattern = re.compile("float\*?|int\*?|Any\*?|Object\*?|unsigned\*?|BOOL\*?|const char\\*|char\\*")
 pointer_pattern = re.compile("int\\*|float\\*|Any\\*|Vector3\\*|BOOL\\*|unsigned\\*")
 
+native_types = {
+    "unsigned": "Int",
+    "Hash": "Int",
+    "char": "Str",
+    "Any": "placeholder",
+    "float": "Float",
+    "int": "Int",
+    "BOOL": "Bool",
+    "Vector3": "Vec3",
+    "Vector2": "Vec2",
+    "Object": "Int",
+    "const": "Str"
+}
+
+
 def remove_py_keywords(arg: str) -> str:
 	for keyword in py_keywords:
 		if(re.search(keyword, arg)):
@@ -48,7 +63,7 @@ def get_pointer_count(arg) -> int:
 
 def format_pointer_result(native_args: int, pointer_type: str) -> str:
     if(native_args != None):
-	    return "(" + ", ".join("result.raw[{}].{}".format(i, pointer_type) for i in range(1, get_pointer_count(native_args) + 1)) + ")"
+	    return "(" + ", ".join("result.raw[{}]{}".format(i, pointer_type) for i in range(1, get_pointer_count(native_args) + 1)) + ")"
 
 def handle_pointers(native_src: list) -> str:
     arr = list(range(get_pointer_count(native_src)))
@@ -58,14 +73,14 @@ def handle_pointers(native_src: list) -> str:
 
 def get_native_result_type(native_src: str) -> str:
     if(native_src != None):
-        match = re.search(r"\b(\w+)\*", native_src)
+        match = re.search(r"static (\w+)", native_src)
         if(match):
             return match.group(1)
 
 
 native_format = """
 def {}({}):
-	{} print({}{})
+	{} native.invoke({}{}){}
 """
 
 namespace_format = """
@@ -103,7 +118,14 @@ with open("natives.hpp") as n:
         cur_hash = get_native_hashes(line).group() if get_native_hashes(line) else None
         cur_args = get_native_args(line) if get_native_args(line) else None
         formatted_args = get_formatted_args(cur_args)
-        pointer_result = format_pointer_result(cur_args, get_native_result_type(cur_args))
+        return_type = get_native_result_type(line)
+        if(return_type == "void" or return_type == None):
+            return_type = ""
+            returns = ""
+        else:
+            return_type = f".{native_types[return_type]}"
+            returns = "return"
+        pointer_result = format_pointer_result(cur_args, return_type)
         if(namespace):
             cur_namespace = namespace.group().lower()
             native_file.write(f"\n{cur_namespace} = {{}} \n")
@@ -114,7 +136,7 @@ with open("natives.hpp") as n:
                 native_file.write(namespace_format.format(cur_namespace, cur_name, cur_name).replace("\n", ""))
                 native_file.write("\n")
             else:
-                native_file.write(native_format.format(cur_name, has_args(formatted_args, False), "", cur_hash, has_args(formatted_args, True)))
+                native_file.write(native_format.format(cur_name, has_args(formatted_args, False), returns, cur_hash, has_args(formatted_args, True), return_type))
                 native_file.write(namespace_format.format(cur_namespace, cur_name, cur_name).replace("\n", ""))
                 native_file.write("\n")
 native_file.close()
