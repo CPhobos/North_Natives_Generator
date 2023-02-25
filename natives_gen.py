@@ -87,7 +87,6 @@ def has_return_type(arg: str) -> bool:
 def capitalize_after_underscore(s):
 	split_str = s.split('_')
 	split_str = [word.capitalize() for word in split_str]
-	split_str[0] = split_str[0].lower()
 	return '_'.join(split_str)
 
 def fivem_format(strr):
